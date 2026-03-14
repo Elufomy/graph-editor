@@ -1,0 +1,29 @@
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# Tauri
+/src-tauri/target
+/src-tauri/debug
+/src-tauri/release
+
+# Build outputs
+/dist
+/dist-ssr
+/*.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
