@@ -27,12 +27,28 @@ const Gallery: React.FC = () => {
       <div className="gallery-content">
         <div className="gallery-header">
           <h1>Мои проекты</h1>
-          <button 
-            className="create-button"
-            onClick={addProject}
-          >
-            + Создать проект
-          </button>
+          <div className="gallery-buttons">
+            <button 
+              className="create-button"
+              onClick={addProject}
+            >
+              + Создать проект
+            </button>
+            <Link to="/raster-lab">
+              <button 
+                className="raster-button"
+              >
+                Растеризатор
+              </button>
+            </Link>
+            <Link to="/shapes-demo">
+              <button 
+                className="shapes-button"
+              >
+                Фигуры (Лабы 5-6-7)
+              </button>
+            </Link>
+          </div>
         </div>
 
         <div className="projects-grid">

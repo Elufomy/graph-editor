@@ -3,7 +3,7 @@
   background-color: #0f172a;
   color: white;
   padding: 32px;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .gallery-content {
@@ -16,12 +16,19 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .gallery-header h1 {
   font-size: 32px;
   font-weight: bold;
   margin: 0;
+}
+
+.gallery-buttons {
+  display: flex;
+  gap: 12px;
 }
 
 .create-button {
@@ -44,6 +51,29 @@
 }
 
 .create-button:active {
+  transform: scale(0.98);
+}
+
+.raster-button {
+  background-color: #8b5cf6;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+}
+
+.raster-button:hover {
+  background-color: #7c3aed;
+}
+
+.raster-button:active {
   transform: scale(0.98);
 }
 
@@ -110,4 +140,27 @@
 .empty-state p:first-child {
   font-size: 24px;
   margin-bottom: 8px;
+}
+
+.shapes-button {
+  background-color: #8b5cf6;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+}
+
+.shapes-button:hover {
+  background-color: #7c3aed;
+}
+
+.shapes-button:active {
+  transform: scale(0.98);
 }

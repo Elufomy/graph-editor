@@ -1,0 +1,412 @@
+.raster-lab {
+  min-height: 100vh;
+  background: #1a1a1a;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.raster-header {
+  background: #2c2c2c;
+  padding: 20px 32px;
+  border-bottom: 1px solid #3a3a3a;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.back-btn {
+  background: #3a3a3a;
+  border: none;
+  color: #e5e5e5;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: #4a4a4a;
+}
+
+.raster-header h1 {
+  font-size: 20px;
+  font-weight: 500;
+  color: #e5e5e5;
+  margin: 0;
+}
+
+.raster-header h2 {
+  font-size: 16px;
+  font-weight: 400;
+  color: #0d99ff;
+  margin: 0;
+}
+
+.raster-content {
+  flex: 1;
+  display: flex;
+  padding: 24px;
+  gap: 24px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Контейнер для холста */
+.raster-canvas-container {
+  flex: 2;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 20px;
+  overflow: auto;
+}
+
+/* Холст */
+.raster-canvas {
+  display: block;
+  background: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  cursor: crosshair;
+}
+
+/* Правая панель */
+.raster-info-panel {
+  width: 320px;
+  background: #2c2c2c;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.info-section {
+  border-bottom: 1px solid #3a3a3a;
+  padding-bottom: 16px;
+}
+
+.info-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.info-section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e5e5e5;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.info-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.info-section li {
+  font-size: 13px;
+  color: #b0b0b0;
+  padding: 6px 0;
+  line-height: 1.4;
+}
+
+/* Инструменты */
+.tool-selector {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.tool-icon-btn {
+  width: 48px;
+  height: 48px;
+  background: #1e1e1e;
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tool-icon-btn:hover {
+  background: #3a3a3a;
+}
+
+.tool-icon-btn.active {
+  background: #0d99ff;
+  border-color: #0d99ff;
+}
+
+.tool-dropdown {
+  position: relative;
+  flex: 1;
+  z-index: 100;
+}
+
+.tool-current {
+  width: 100%;
+  background: #1e1e1e;
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: #e5e5e5;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.tool-current:hover {
+  background: #3a3a3a;
+}
+
+.tool-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 8px;
+  background: #2c2c2c;
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.tool-menu button {
+  width: 100%;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  color: #e5e5e5;
+  cursor: pointer;
+  text-align: left;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tool-menu button:hover {
+  background: #3a3a3a;
+}
+
+/* Настройки */
+.setting {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.setting label {
+  width: 80px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.setting input[type="color"] {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid #3a3a3a;
+  cursor: pointer;
+  background: #1e1e1e;
+}
+
+.setting input[type="range"] {
+  flex: 1;
+  min-width: 100px;
+  height: 4px;
+  border-radius: 2px;
+  background: #3a3a3a;
+  cursor: pointer;
+}
+
+.setting span {
+  font-size: 12px;
+  color: #b0b0b0;
+  min-width: 45px;
+}
+
+.fill-btn {
+  background: #1e1e1e;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: #e5e5e5;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.fill-btn.active {
+  background: #0d99ff;
+  border-color: #0d99ff;
+}
+
+.delete-btn {
+  width: 100%;
+  background: #e74c3c;
+  border: none;
+  border-radius: 8px;
+  padding: 8px;
+  color: white;
+  cursor: pointer;
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+.delete-btn:hover {
+  background: #c0392b;
+}
+
+/* Алгоритмы */
+.alg-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.alg-buttons button {
+  background: #1e1e1e;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #e5e5e5;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.alg-buttons button:hover {
+  background: #3a3a3a;
+}
+
+.alg-buttons button.active {
+  background: #0d99ff;
+  border-color: #0d99ff;
+}
+
+.alg-desc {
+  display: block;
+  font-size: 11px;
+  font-weight: normal;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+.alg-buttons button.active .alg-desc {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.alg-note {
+  font-size: 12px;
+  color: #9ca3af;
+  line-height: 1.5;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #3a3a3a;
+}
+
+/* Предпросмотр алгоритмов */
+.alg-preview {
+  margin-top: 12px;
+  padding: 8px;
+  background: #1e1e1e;
+  border-radius: 8px;
+}
+
+.preview-line {
+  padding: 4px 0;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.bresenham-preview {
+  color: #60a5fa;
+  letter-spacing: 2px;
+}
+
+.wu-preview {
+  color: #f472b6;
+  letter-spacing: 0px;
+}
+
+/* Поле ввода имени */
+.name-input {
+  flex: 1;
+  background: #1e1e1e;
+  border: 1px solid #3a3a3a;
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: #e5e5e5;
+  font-size: 13px;
+}
+
+.name-input:focus {
+  outline: none;
+  border-color: #0d99ff;
+}
+
+.raster-info-panel {
+  width: 260px;
+  background: #2c2c2c;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.info-section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e5e5e5;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.alg-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.alg-buttons button {
+  background: #1e1e1e;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #e5e5e5;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+}
+
+.alg-buttons button.active {
+  background: #0d99ff;
+  border-color: #0d99ff;
+}
