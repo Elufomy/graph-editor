@@ -6,3 +6,4 @@ export { Line } from './primitives/Line';
 export { Triangle } from './primitives/Triangle';
 export { QuadraticBezier } from './curves/QuadraticBezier';
 export { CubicBezier } from './curves/CubicBezier';
+export { PathBezier } from './curves/PathBezier';
