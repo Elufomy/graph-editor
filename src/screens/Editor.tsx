@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { mat3, Mat3 } from '../lib/math/mat3';
 import './Editor.css';
+import { saveProjectDialog, ProjectData, shapeFromJSON } from '../lib/projectStorage';
 
 type ShapeType = 'square' | 'circle' | 'line' | 'brush';
 
@@ -38,7 +39,6 @@ const createMatrix = (tx: number, ty: number, rotation: number, sx: number, sy: 
   mat3.fromTransform(tx, ty, rotation, sx, sy);
 
 const getWorldCenter = (layer: Layer): { x: number; y: number } => {
-  // const { tx, ty } = extractTransform(layer.matrix);
   const localCenter = { x: layer.width / 2, y: layer.height / 2 };
   return mat3.transformPoint(layer.matrix, localCenter.x, localCenter.y);
 };
@@ -53,16 +53,14 @@ const Editor: React.FC = () => {
   const [selectedTool, setSelectedTool] = useState<ShapeType | 'select'>('select');
   const [showToolMenu, setShowToolMenu] = useState(false);
   const [brushSize, setBrushSize] = useState(5);
+  const [lineAlgorithm, setLineAlgorithm] = useState<'bresenham' | 'wu'>('bresenham');
   
-  // рисование линии
   const [isDrawingLine, setIsDrawingLine] = useState(false);
   const [lineStart, setLineStart] = useState({ x: 0, y: 0 });
   
-  // рисование кистью
   const [isDrawingBrush, setIsDrawingBrush] = useState(false);
   const [currentStroke, setCurrentStroke] = useState<{ x: number; y: number }[]>([]);
   
-  // Трансформации
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [dragStartMatrix, setDragStartMatrix] = useState<Mat3 | null>(null);
@@ -70,12 +68,38 @@ const Editor: React.FC = () => {
   const [isRotating, setIsRotating] = useState(false);
   const [rotateStartAngle, setRotateStartAngle] = useState(0);
   const [rotateStartMatrix, setRotateStartMatrix] = useState<Mat3 | null>(null);
+  const [rotateCenter, setRotateCenter] = useState({ x: 0, y: 0 });
   
   const [isScaling, setIsScaling] = useState(false);
   const [scaleStart, setScaleStart] = useState({ x: 0, y: 0 });
   const [scaleStartMatrix, setScaleStartMatrix] = useState<Mat3 | null>(null);
 
   const selectedLayer = layers.find(l => l.id === selectedLayerId);
+
+  // Загрузка проекта из localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('projectToLoad');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        console.log('📥 Загружено из localStorage:', data);
+        
+        if (data.shapes && data.shapes.length > 0) {
+          const loadedShapes = data.shapes
+            .map((item: any) => shapeFromJSON(item))
+            .filter((s: any): s is any => s !== null);
+          
+          console.log('📥 Загружено фигур:', loadedShapes.length);
+          setLayers(loadedShapes as any);
+          console.log('📥 Установлено слоёв:', loadedShapes.length);
+        }
+        
+        localStorage.removeItem('projectToLoad');
+      } catch (e) {
+        console.error('❌ Ошибка загрузки из localStorage:', e);
+      }
+    }
+  }, []);
 
   const getNextName = (type: ShapeType) => {
     const count = layers.filter(l => l.type === type).length;
@@ -91,11 +115,7 @@ const Editor: React.FC = () => {
       setLineStart({ x, y });
       return;
     }
-    
-    if (type === 'brush') {
-      return;
-    }
-    
+    if (type === 'brush') return;
     const size = type === 'square' ? 80 : 70;
     const newLayer: Layer = {
       id: Date.now().toString(),
@@ -130,7 +150,6 @@ const Editor: React.FC = () => {
 
   const finishBrushStroke = useCallback(() => {
     if (currentStroke.length < 2) return;
-    
     const newLayer: Layer = {
       id: Date.now().toString(),
       name: getNextName('brush'),
@@ -158,7 +177,6 @@ const Editor: React.FC = () => {
       }
       return false;
     }
-    
     if (layer.type === 'line' && layer.points && layer.points.length >= 2) {
       const p1 = layer.points[0];
       const p2 = layer.points[1];
@@ -166,7 +184,6 @@ const Editor: React.FC = () => {
                    Math.sqrt(Math.pow(p2.y - p1.y, 2) + Math.pow(p2.x - p1.x, 2));
       return dist < 8;
     }
-    
     const invMatrix = mat3.invert(layer.matrix);
     if (!invMatrix) return false;
     const local = mat3.transformPoint(invMatrix, mouseX, mouseY);
@@ -177,7 +194,6 @@ const Editor: React.FC = () => {
       : (local.x * local.x) / (halfW * halfW) + (local.y * local.y) / (halfH * halfH) <= 1;
   }, [brushSize]);
 
-  // перемещение
   const startDrag = (e: React.MouseEvent, layer: Layer) => {
     if (selectedTool !== 'select') return;
     e.stopPropagation();
@@ -196,7 +212,6 @@ const Editor: React.FC = () => {
     setLayers(prev => prev.map(l => l.id === selectedLayerId ? { ...l, matrix: newMatrix } : l));
   };
 
-  // поворот
   const startRotate = (e: React.MouseEvent, layer: Layer) => {
     e.stopPropagation();
     const rect = canvasRef.current?.getBoundingClientRect();
@@ -225,7 +240,6 @@ const Editor: React.FC = () => {
     setLayers(prev => prev.map(l => l.id === selectedLayerId ? { ...l, matrix: newMatrix } : l));
   };
 
-  // масштабирование
   const startScale = (e: React.MouseEvent, layer: Layer) => {
     e.stopPropagation();
     setIsScaling(true);
@@ -260,11 +274,22 @@ const Editor: React.FC = () => {
     if (!rect) return;
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
-    
     if (selectedTool === 'brush') {
       setIsDrawingBrush(true);
       setCurrentStroke([{ x: mx, y: my }]);
       return;
+    }
+    if (selectedTool === 'select') {
+      for (let i = layers.length - 1; i >= 0; i--) {
+        if (hitTest(layers[i], mx, my)) {
+          setSelectedLayerId(layers[i].id);
+          setDragStart({ x: e.clientX, y: e.clientY });
+          setDragStartMatrix([...layers[i].matrix]);
+          setIsDragging(true);
+          return;
+        }
+      }
+      setSelectedLayerId(null);
     }
   };
 
@@ -273,14 +298,13 @@ const Editor: React.FC = () => {
     if (!rect) return;
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
-    
     if (isDrawingBrush && selectedTool === 'brush') {
       setCurrentStroke(prev => [...prev, { x: mx, y: my }]);
+      return;
     }
-    
-    onDrag(e);
-    onRotate(e);
-    onScale(e);
+    if (isDragging && selectedLayerId) onDrag(e);
+    if (isRotating && selectedLayerId) onRotate(e);
+    if (isScaling && selectedLayerId) onScale(e);
   };
 
   const handleCanvasMouseUp = () => {
@@ -296,40 +320,25 @@ const Editor: React.FC = () => {
     if (!rect) return;
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
-    
     if (isDrawingLine && selectedTool === 'line') {
       finishLine(mx, my);
       return;
     }
-    
     if (selectedTool !== 'select' && selectedTool !== 'brush') {
       addShape(selectedTool, mx, my);
       return;
-    }
-    
-    if (selectedTool === 'select') {
-      for (let i = layers.length - 1; i >= 0; i--) {
-        if (hitTest(layers[i], mx, my)) {
-          setSelectedLayerId(layers[i].id);
-          return;
-        }
-      }
-      setSelectedLayerId(null);
     }
   };
 
   const updateLayerProperty = (id: string, prop: string, value: any) => {
     setLayers(prev => prev.map(layer => {
       if (layer.id !== id) return layer;
-      
       if (prop === 'color') return { ...layer, color: value };
       if (prop === 'opacity') return { ...layer, opacity: Math.max(0, Math.min(1, value)) };
       if (prop === 'name') return { ...layer, name: value };
-      
       const { tx, ty, rotation, sx, sy } = extractTransform(layer.matrix);
       const centerX = tx + layer.width / 2;
       const centerY = ty + layer.height / 2;
-      
       if (prop === 'x') {
         const newMatrix = createMatrix(value - layer.width / 2, ty, rotation, sx, sy);
         return { ...layer, matrix: newMatrix };
@@ -352,7 +361,6 @@ const Editor: React.FC = () => {
         const newMatrix = createMatrix(tx, centerY - h / 2, rotation, sx, sy);
         return { ...layer, height: h, matrix: newMatrix };
       }
-      
       return layer;
     }));
   };
@@ -362,9 +370,39 @@ const Editor: React.FC = () => {
     if (selectedLayerId === id) setSelectedLayerId(null);
   };
 
+  const handleSave = async () => {
+    const projectId = id || Date.now().toString();
+    if (layers.length === 0) {
+      alert('Нет фигур для сохранения!');
+      return;
+    }
+    const projectData: ProjectData = {
+      id: projectId,
+      name: `Проект ${new Date().toLocaleDateString()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      lineAlgorithm: lineAlgorithm || 'bresenham',
+      shapes: layers.map(shape => {
+        if (shape.toJSON) return shape.toJSON();
+        return shape;
+      })
+    };
+    const success = await saveProjectDialog(projectData);
+    if (success) {
+      alert('✅ Проект сохранён!');
+    } else {
+      alert('❌ Сохранение отменено или произошла ошибка');
+    }
+  };
+
   const renderShape = (layer: Layer) => {
     const isSelected = selectedLayerId === layer.id;
-    const fillColor = `rgba(${parseInt(layer.color.slice(1, 3), 16)}, ${parseInt(layer.color.slice(3, 5), 16)}, ${parseInt(layer.color.slice(5, 7), 16)}, ${layer.opacity})`;
+    
+    // Безопасное получение цвета
+    const colorHex = layer.color || '#4a5568';
+    const opacity = layer.opacity ?? 0.9;
+    
+    const fillColor = `rgba(${parseInt(colorHex.slice(1, 3), 16) || 74}, ${parseInt(colorHex.slice(3, 5), 16) || 85}, ${parseInt(colorHex.slice(5, 7), 16) || 104}, ${opacity})`;
     
     if (layer.type === 'line' && layer.points && layer.points.length >= 2) {
       const p1 = layer.points[0];
@@ -414,8 +452,12 @@ const Editor: React.FC = () => {
       <g 
         key={layer.id} 
         transform={transform}
-        onMouseDown={(e) => startDrag(e, layer)}
-        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+        onMouseDown={(e) => {
+          if (selectedTool === 'select') {
+            startDrag(e, layer);
+          }
+        }}
+        style={{ cursor: selectedTool === 'select' ? (isDragging ? 'grabbing' : 'grab') : 'default' }}
       >
         {layer.type === 'square' ? (
           <rect x={0} y={0} width={layer.width} height={layer.height} fill={fillColor} stroke={isSelected ? '#0d99ff' : 'none'} strokeWidth={isSelected ? 2 : 0} />
@@ -446,7 +488,7 @@ const Editor: React.FC = () => {
       <header className="editor-header">
         <button className="back-btn" onClick={() => navigate('/')}>← Назад</button>
         <span className="project-name">Проект {id}</span>
-        <button className="save-btn">Сохранить</button>
+        <button className="save-btn" onClick={handleSave}>Сохранить</button>
       </header>
 
       <div className="editor-main">
@@ -521,7 +563,7 @@ const Editor: React.FC = () => {
                 <label>Цвет</label>
                 <input 
                   type="color" 
-                  value={selected.color}
+                  value={selected.color || '#4a5568'}
                   onChange={(e) => updateLayerProperty(selected.id, 'color', e.target.value)}
                   className="prop-color"
                 />
@@ -534,10 +576,10 @@ const Editor: React.FC = () => {
                     min="0" 
                     max="1" 
                     step="0.01"
-                    value={selected.opacity}
+                    value={selected.opacity || 0.9}
                     onChange={(e) => updateLayerProperty(selected.id, 'opacity', parseFloat(e.target.value))}
                   />
-                  <span className="prop-value">{Math.round(selected.opacity * 100)}%</span>
+                  <span className="prop-value">{Math.round((selected.opacity || 0.9) * 100)}%</span>
                 </div>
               </div>
               {selected.type !== 'line' && selected.type !== 'brush' && (

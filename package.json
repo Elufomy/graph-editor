@@ -12,6 +12,8 @@
     "test:run": "vitest run"
   },
   "dependencies": {
+    "@tauri-apps/plugin-dialog": "^2.7.1",
+    "@tauri-apps/plugin-fs": "^2.5.1",
     "framer-motion": "^11.18.2",
     "lucide-react": "^0.344.0",
     "react": "^18.2.0",

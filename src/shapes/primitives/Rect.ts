@@ -25,18 +25,12 @@ export class Rect extends Shape {
   getLocalBounds(): Bounds {
     const halfW = this.width / 2;
     const halfH = this.height / 2;
-    return {
-      minX: -halfW,
-      minY: -halfH,
-      maxX: halfW,
-      maxY: halfH
-    };
+    return { minX: -halfW, minY: -halfH, maxX: halfW, maxY: halfH };
   }
 
   getBounds(): Bounds {
     const corners = this.getLocalCorners();
     const deviceCorners = corners.map(p => this.transformPointToDevice(p.x, p.y));
-    
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (const p of deviceCorners) {
       minX = Math.min(minX, p.x);
@@ -50,7 +44,6 @@ export class Rect extends Shape {
   drawRaster(r: RasterRenderer): void {
     const corners = this.getLocalCorners();
     const deviceCorners = corners.map(p => this.transformPointToDevice(p.x, p.y));
-    
     const fillColor: RGBA = hexToRGBA(this.fillStyle, Math.round(this.fillOpacity * 255));
     const strokeColor: RGBA = hexToRGBA(this.strokeStyle, Math.round(this.strokeOpacity * 255));
     
@@ -65,7 +58,6 @@ export class Rect extends Shape {
   hitTest(px: number, py: number): boolean {
     const local = this.transformPointToLocal(px, py);
     if (!local) return false;
-    
     const halfW = this.width / 2;
     const halfH = this.height / 2;
     return local.x >= -halfW && local.x <= halfW && local.y >= -halfH && local.y <= halfH;
@@ -74,13 +66,10 @@ export class Rect extends Shape {
   resizeFromDeviceAABB(minX: number, minY: number, maxX: number, maxY: number): void {
     const centerX = (minX + maxX) / 2;
     const centerY = (minY + maxY) / 2;
-    const newWidth = Math.abs(maxX - minX);
-    const newHeight = Math.abs(maxY - minY);
-    
     this.transform.x = centerX;
     this.transform.y = centerY;
-    this.width = Math.max(20, newWidth);
-    this.height = Math.max(20, newHeight);
+    this.width = Math.max(20, maxX - minX);
+    this.height = Math.max(20, maxY - minY);
   }
 
   clone(): Rect {
@@ -100,6 +89,7 @@ export class Rect extends Shape {
       id: this.id,
       width: this.width,
       height: this.height,
+      matrix: this.matrix,
       transform: { ...this.transform },
       fillStyle: this.fillStyle,
       fillOpacity: this.fillOpacity,
